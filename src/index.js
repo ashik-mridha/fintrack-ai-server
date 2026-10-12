@@ -17,7 +17,7 @@ import {
 
 const app = express();
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 5000;
 const CLIENT_URL =
   process.env.CLIENT_URL || 'http://localhost:5173';
 
@@ -64,7 +64,7 @@ app.use(errorHandler);
 // Connect database and start server
 const startServer = async () => {
   try {
-    // await connectDB();
+    await connectDB();
 
     app.listen(PORT, () => {
       console.log('-----------------------------------');
