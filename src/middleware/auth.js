@@ -9,19 +9,23 @@ export const protect = asyncHandler(async (req, res, next) => {
 
   if (!token) {
     res.status(401);
-    throw new Error('লগইন করা নেই');
+    throw new Error('লগইন করা নেই, টোকেন পাওয়া যায়নি');
   }
 
   try {
-    const { id } = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(id);
-  } catch {
-    req.user = null;
-  }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  if (!req.user) {
+    // পাসওয়ার্ড বা সংবেদনশীল তথ্য বাদ দিয়ে ইউজার খোঁজা এবং ইউজার রিমুভ হয়েছে কিনা চেক করা
+    req.user = await User.findById(decoded.id).select('-password');
+
+    if (!req.user) {
+      res.status(401);
+      throw new Error('টোকেনের ইউজার পাওয়া যায়নি, আবার লগইন করুন');
+    }
+
+    next();
+  } catch (error) {
     res.status(401);
-    throw new Error('টোকেন সঠিক নয়, আবার লগইন করুন');
+    throw new Error('টোকেন সঠিক নয় বা মেয়াদ শেষ হয়ে গেছে');
   }
-  next();
 });
